@@ -11,6 +11,7 @@ import numpy as np
 
 from utils import load_data
 
+# test
 
 def random_recommend(n_recommendations: int = 10, seed: int = 42) -> list[int]:
     """
