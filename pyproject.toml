@@ -1,3 +1,15 @@
+[project]
+name = "recsys-course"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.4.3",
+    "pandas>=3.0.1",
+    "ruff>=0.15.6",
+]
+
 [tool.ruff]
 # Set the maximum line length to 88 (same as Black).
 line-length = 88
@@ -8,3 +20,4 @@ target-version = "py312"
 # Enable Pyflakes (`F`), PEP8 (`E`), isort (`I`), and Pyupgrade (`UP`) rules.
 select = ["E", "F", "I", "UP"]
 ignore = []
+
