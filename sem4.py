@@ -73,7 +73,14 @@ class SVDRecommender:
         if k <= 0:
             raise ValueError("k must be positive")
 
-        raise NotImplementedError("Реализуйте восстановление матрицы")
+        # оставляем только нужное число латентных факторов
+        k_eff = min(k, self.S.shape[0])
+        U_k = self.U[:, :k_eff]
+        S_k = self.S[:k_eff]
+        V_k = self.V[:k_eff, :]
+
+        # собираем приближенную матрицу рейтингов
+        return U_k @ np.diag(S_k) @ V_k
 
     def predict_rating(self, user_id: int, item_id: int, k: int = 20) -> float:
         """
@@ -86,7 +93,14 @@ class SVDRecommender:
         3) Предсказание для пары (user_id, item_id) берём из X_hat.
         4) Обрезаем результат в диапазон [0.0, 5.0].
         """
-        raise NotImplementedError("Реализуйте предсказание рейтинга")
+        # восстанавливаем матрицу по первым k компонентам
+        reconstructed_matrix = self._reconstruct_matrix(k)
+
+        # достаем прогноз для конкретной пары пользователь-фильм
+        rating = reconstructed_matrix[user_id, item_id]
+
+        # приводим рейтинг к допустимому диапазону
+        return float(np.clip(rating, 0.0, 5.0))
 
     def predict_items_for_user(
         self, user_id: int, k: int = 20, n_recommendations: int = 5
@@ -101,7 +115,20 @@ class SVDRecommender:
         4) Сортируем кандидатов по убыванию прогнозного рейтинга.
         5) Возвращаем top-n индексы фильмов.
         """
-        raise NotImplementedError("Реализуйте рекомендацию фильмов")
+        # восстанавливаем прогнозы рейтингов
+        reconstructed_matrix = self._reconstruct_matrix(k)
+        user_predictions = reconstructed_matrix[user_id]
+
+        # берем только фильмы без оценки пользователя
+        unrated_items = np.where(self.ui_matrix[user_id] == 0)[0]
+        if len(unrated_items) == 0:
+            return []
+
+        # сортируем неоцененные фильмы по прогнозу
+        sorted_idx = np.argsort(user_predictions[unrated_items])[::-1]
+        recommendations = unrated_items[sorted_idx[:n_recommendations]]
+
+        return [int(item_id) for item_id in recommendations]
 
 
 if __name__ == "__main__":
